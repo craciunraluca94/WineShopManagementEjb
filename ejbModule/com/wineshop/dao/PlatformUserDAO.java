@@ -2,6 +2,8 @@ package com.wineshop.dao;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
@@ -9,13 +11,14 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
-import javax.swing.text.ChangedCharSetException;
 
 import com.wineshop.dto.ChangePasswordDTO;
-import com.wineshop.dto.ClientB2BDTO;
+
+import com.wineshop.dto.LoginDTO;
 import com.wineshop.dto.PlatformUserDTO;
 import com.wineshop.exceptions.ChangePasswordException;
-import com.wineshop.model.ClientB2B;
+import com.wineshop.exceptions.LoginException;
+
 import com.wineshop.model.PlatformUser;
 
 /**
@@ -28,9 +31,8 @@ public class PlatformUserDAO implements PlatformUserDAORemote {
 	@PersistenceContext
 	private EntityManager entityManager;
 
-	/**
-	 * Default constructor.
-	 */
+	static final Logger LOGGER = Logger.getLogger(PlatformUserDAO.class.getName());
+
 	public PlatformUserDAO() {
 	}
 
@@ -46,7 +48,8 @@ public class PlatformUserDAO implements PlatformUserDAORemote {
 	@Override
 	public List<PlatformUserDTO> findAll() {
 		Query query = entityManager.createQuery("SELECT u FROM PlatformUser u");
-		List<PlatformUser> users = (List<PlatformUser>) query.getResultList();
+		List<PlatformUser> users = query.getResultList();
+		System.out.println(users.toString());
 		List<PlatformUserDTO> dtoUsers = new ArrayList<>();
 		for (PlatformUser platformUser : users) {
 			PlatformUserDTO platformUserDTO = new PlatformUserDTO(platformUser.getUsername(),
@@ -84,19 +87,16 @@ public class PlatformUserDAO implements PlatformUserDAORemote {
 
 	@Override
 	public Boolean updatePassword(ChangePasswordDTO changePasswordDTO) {
-		PlatformUser user= null;
+		PlatformUser user = null;
+		LOGGER.log(Level.INFO, "Trying to update password for:  " + changePasswordDTO.toString());
 		try {
-		 user = (PlatformUser) entityManager.createNamedQuery("findUserByUsername")
-				.setParameter("username", changePasswordDTO.getUsername()).getSingleResult();
-		}
-		catch(NoResultException e) {
-			throw new ChangePasswordException("The username is not valid!");
-		}
-		if (null != user) {
+			user = entityManager.createNamedQuery("findUserByUsername", PlatformUser.class)
+					.setParameter("username", changePasswordDTO.getUsername()).getSingleResult();
 			if (user.getPassword().equals(changePasswordDTO.getOldPassword())) {
 				if (!changePasswordDTO.getOldPassword().equals(changePasswordDTO.getNewPassword())) {
 					user.setPassword(changePasswordDTO.getNewPassword());
 					user = entityManager.merge(user);
+					LOGGER.log(Level.INFO, "Successfully changed password for:  " + changePasswordDTO.toString());
 					return true;
 				} else {
 					throw new ChangePasswordException(
@@ -104,7 +104,30 @@ public class PlatformUserDAO implements PlatformUserDAORemote {
 				}
 			} else
 				throw new ChangePasswordException("The old password is not valid.");
-		} else
+		} catch (NoResultException e) {
 			throw new ChangePasswordException("The username is not valid!");
+		}
+	}
+
+	@Override
+	public PlatformUserDTO login(LoginDTO loginDTO) {
+		LOGGER.log(Level.INFO, "Trying to login:  " + loginDTO.toString());
+		PlatformUser user = null;
+		PlatformUserDTO platformUserDTO;
+		try {
+			user = entityManager.createNamedQuery("findUserByUsername", PlatformUser.class)
+					.setParameter("username", loginDTO.getUsername()).getSingleResult();
+			if (user.getPassword().equals(loginDTO.getPassword())) {
+				platformUserDTO = new PlatformUserDTO(user.getUsername(), user.getPassword(), user.getAddress(),
+						user.getEmail());
+				platformUserDTO.setDtype(user.getDiscriminatorValue());
+				LOGGER.log(Level.INFO, "Successfully logged in:  " + platformUserDTO.toString());
+				return platformUserDTO;
+			} else {
+				throw new LoginException("The password is not valid!");
+			}
+		} catch (NoResultException e) {
+			throw new LoginException("The username is not valid!");
+		}
 	}
 }
