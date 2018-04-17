@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.DiscriminatorType;
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -11,13 +12,12 @@ import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.NamedQuery;
+import javax.persistence.Transient;
 
 @Entity
-@NamedQuery(
-        name="findUserByUsername",
-        query="SELECT u FROM PlatformUser u WHERE u.username = :username"
-)
+@NamedQuery(name = "findUserByUsername", query = "SELECT u FROM PlatformUser u WHERE u.username = :username")
 @DiscriminatorColumn(discriminatorType = DiscriminatorType.STRING, name = "DTYPE")
+@DiscriminatorValue("PlatformUser")
 @Inheritance(strategy = InheritanceType.JOINED)
 public class PlatformUser implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -36,7 +36,7 @@ public class PlatformUser implements Serializable {
 
 	public PlatformUser() {
 	}
-	
+
 	public PlatformUser(String username, String password, String address, String emmail) {
 		super();
 		this.username = username;
@@ -44,7 +44,7 @@ public class PlatformUser implements Serializable {
 		this.address = address;
 		this.email = emmail;
 	}
-	
+
 	public int getId() {
 		return id;
 	}
@@ -85,9 +85,15 @@ public class PlatformUser implements Serializable {
 		this.email = email;
 	}
 
+	@Transient
+	public String getDiscriminatorValue() {
+		System.out.println("User type is: "+this.getClass().getAnnotation(DiscriminatorValue.class).value());
+		return this.getClass().getAnnotation(DiscriminatorValue.class).value();
+	}
+
 	@Override
 	public String toString() {
-		return "PlatformUser [id=" + id + ", username=" + username + ", password=" + password + ", address=" + address
-				+ ", emmail=" + email + "]";
+		return "PlatformUser [id=" + id + "type=" + getDiscriminatorValue() + ", username=" + username + ", password="
+				+ password + ", address=" + address + ", emmail=" + email + "]";
 	}
 }
