@@ -2,11 +2,13 @@ package com.wineshop.model;
 
 import java.util.Date;
 
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 @Entity
+@DiscriminatorValue("ClientB2C")
 public class ClientB2C extends PlatformUser {
 
 	private static final long serialVersionUID = 1L;
@@ -21,10 +23,11 @@ public class ClientB2C extends PlatformUser {
 	private String CNP;
 
 	public ClientB2C() {
-	}	
-	
-	public ClientB2C(String firstName, String lastName, Date registerDate, String cNP,String username, String password, String address, String email) {
-		super(username, password, address, email);		
+	}
+
+	public ClientB2C(String firstName, String lastName, Date registerDate, String cNP, String username, String password,
+			String address, String email) {
+		super(username, password, address, email);
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.registerDate = registerDate;
@@ -65,7 +68,7 @@ public class ClientB2C extends PlatformUser {
 
 	@Override
 	public String toString() {
-		return "ClientB2C [firstName=" + firstName + ", lastName=" + lastName + ", registerDate=" + registerDate
-				+ ", CNP=" + CNP + "]";
+		return "ClientB2C " + super.toString() + " [firstName=" + firstName + ", lastName=" + lastName
+				+ ", registerDate=" + registerDate + ", CNP=" + CNP + "]";
 	}
 }

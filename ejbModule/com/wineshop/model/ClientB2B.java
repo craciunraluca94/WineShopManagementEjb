@@ -1,8 +1,10 @@
 package com.wineshop.model;
 
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
 @Entity
+@DiscriminatorValue("ClientB2B")
 public class ClientB2B extends PlatformUser{
 	
 	private static final long serialVersionUID = 1L;
@@ -82,7 +84,7 @@ public class ClientB2B extends PlatformUser{
 
 	@Override
 	public String toString() {
-		return "ClientB2B [visibility=" + visibility + ", companyName=" + companyName + ", CUI=" + CUI + ", subscribed="
+		return "ClientB2B "+ super.toString()+ " [visibility=" + visibility + ", companyName=" + companyName + ", CUI=" + CUI + ", subscribed="
 				+ subscribed + ", active=" + active + ", limitQuantity=" + limitQuantity + "]";
 	}
 }
